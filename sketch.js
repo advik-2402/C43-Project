@@ -1,0 +1,173 @@
+//Create Variables
+var virus, player, soap, mask, handShake, virusGroup, soapGroup, maskGroup, handShakeGroup;
+var maskImg, handshakeImg, virusImg, soapImg;
+var invisibleGround;
+var backgroundImg;
+var spawnVirusRate = 80, virusVelocity = 4;
+var gameState = "toStart"
+
+//Load background Image
+function preload() {
+    backgroundImg = loadImage("images/background1.jpg");
+    maskImg = loadImage("images/mask.png");
+    soapImg = loadImage("images/soap.png");
+    handshakeImg = loadImage("images/handshake.png");
+    virusImg = loadImage("images/virus.png")
+}
+
+function setup() {
+    var canvas = createCanvas(500, 400);
+
+    invisibleGround = createSprite(100, 330, 800, 40);
+    invisibleGround.visible = false;
+
+    player = createSprite(470, 300, 20, 20);
+
+    virusGroup = createGroup();
+    soapGroup = createGroup();
+    maskGroup = createGroup();
+    handShakeGroup = createGroup();
+}
+
+function draw() {
+    //background settings
+    background(backgroundImg);
+
+    //Display initial screen
+    if (gameState == "toStart") {
+        textSize(27);
+        fill("black");
+        text("INSTRUCTIONS", 150, 50);
+
+        textSize(20);
+        fill("red");
+        text("Jump over the virus using 'SPACE'!", 10, 100);
+        text("Collect handwashes to slow the virus!", 10, 120);
+
+        text("Collect masks to destroy the virus completely!", 10, 140);
+        textSize(17.5);
+
+        text("If you collect a handshake, then the speed of virus will increase!", 5, 160);
+        textSize(20);
+
+        fill("black");
+        text("Press ENTER to start", 150, 270);
+        //Change game State when ENTER is pressed
+        if (keyCode == ENTER) {
+            gameState = "started"
+        }
+    }
+
+    if (gameState == "end") {
+        //console.log("GAME OVER")
+        fill("black");
+        textSize(22);
+        text("You Lost!", 135, 170);
+
+        fill("black");
+        textSize(22);
+        text("Press R to restart", 125, 200)
+        if (keyCode === 82) {
+            maskGroup.destroyEach();
+            virusGroup.destroyEach();
+            soapGroup.destroyEach();
+            handShakeGroup.destroyEach();
+            gameState = "toStart";
+        }
+        spawnVirusRate = 80;
+        virusVelocity = 4;
+
+    }
+
+    if (gameState === "started") {
+        spawnVirus();
+        spawnSoap();
+        spawnMask();
+        spawnHandShake();
+
+        player.velocityY = player.velocityY + 0.8;
+
+        if (player.isTouching(virusGroup)) {
+            gameState = "end"
+        }
+        if (player.isTouching(maskGroup)) {
+            maskHit();
+        }
+        if (player.isTouching(soapGroup)) {
+            soapHit();
+        }
+        if (player.isTouching(handShakeGroup)) {
+            handShakeHit();
+        }
+        drawSprites();
+    }
+    player.collide(invisibleGround);
+}
+
+function keyPressed() {
+    if (keyCode == 32 && gameState == "started" && player.y >= 300) {
+        player.velocityY = -15;
+    }
+}
+
+function spawnVirus() {
+    if ((frameCount % spawnVirusRate == 0) && gameState == "started") {
+        virus = createSprite(0, 300, 20, 20);
+        virus.velocityX = virusVelocity;
+        virusGroup.add(virus);
+        virus.addImage(virusImg);
+        virus.scale = 0.2;
+        //virus.debug = true
+        virus.setCollider("circle", 0, 0, 100)
+    }
+}
+
+function spawnSoap() {
+    if ((frameCount % 200 == 0) && gameState == "started") {
+        soap = createSprite(0, 200, 20, 20);
+        soap.velocityX = 5;
+        soapGroup.add(soap);
+        soap.addImage(soapImg);
+        soap.scale = 0.05;
+        soap.setCollider("circle", 0, 0, 220);
+    }
+}
+
+function spawnMask() {
+    if ((frameCount % 700 == 0) && gameState == "started") {
+        mask = createSprite(0, 200, 20, 20);
+        mask.shapeColor = "red";
+        mask.velocityX = 8;
+        maskGroup.add(mask);
+        mask.addImage(maskImg);
+        mask.scale = 0.05
+        mask.setCollider("circle", 0, 0, 490)
+    }
+}
+
+function spawnHandShake() {
+    if ((frameCount % 300 == 0) && gameState == "started") {
+        handShake = createSprite(0, 200, 20, 20);
+        handShake.velocityX = 2;
+        handShakeGroup.add(handShake);
+        handShake.addImage(handshakeImg);
+        handShake.scale = 0.08;
+        handShake.setCollider("circle", 0, 0, 200)
+    }
+}
+
+function soapHit() {
+    if (spawnVirusRate > 30 && gameState == "started") {
+        spawnVirusRate = spawnVirusRate + 2;
+    }
+}
+
+
+function maskHit() {
+    virusGroup.destroyEach();
+    handShakeGroup.destroyEach();
+}
+
+function handShakeHit() {
+    virusVelocity += 1;
+}

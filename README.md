@@ -1,1 +1,2 @@
-# C43-Project
+# BattleTheVirus
+A fun game based on COVID-19
